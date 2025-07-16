@@ -2,13 +2,13 @@
 
 Steps to Setup / Run / Code the Files :
 
-    1. Download Visual Studio Code
+    1. Download Visual Studio Code from https://code.visualstudio.com/
 
     2. Add Python as an extention in and on Visual Studio Code
 
     3. Download the Recomended file (Python 3.10) from this website (If you are using windows) - https://www.python.org/downloads/release/python-3100/
     
-    4. Run the exe file to download it
+    4. Run the .exe file to download it
 
     5. In a Visual Studio Code file - At the top left of the window (next to the "file", "edit", and "selection" drop down menues) click the "view" drop down menue
 
