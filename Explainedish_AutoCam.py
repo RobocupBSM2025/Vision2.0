@@ -11,10 +11,11 @@ directory
 """
 
 import cv2
-import threading
+import threading #Allows for multiple cameras to be ran at once
 #Resolution of Photo (With/Hight)
-w=160 #852
-h=120 #480
+#Resolution of Photo (With/Hight)
+w=160 #852 (OG resolution)
+h=120 #480 (OG resolution)
 
 """ Start of Setting up a video resolution to camera and connecting to the camera 
 (Copy Past with minor edits to numbers for each additional camera) """
