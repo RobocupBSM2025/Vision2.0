@@ -1,0 +1,47 @@
+#Test_Object_Detection_And_Tracking
+import cv2
+import numpy as np
+import time
+
+CameraNumber = 1 #Can use this to run the software then change the number up or down by one to see which camera is the one you want ( If you have time you could also make it so it does that automatically, i just did not want to spend time when i dont have it)
+
+# Settings
+withCam, heightCam = 640, 420  # Resolution
+fps = 15
+delay = 1 / fps
+
+# Camera setup
+cam = cv2.VideoCapture(CameraNumber)
+cam.set(3, withCam)
+cam.set(4, heightCam)
+if not cam.isOpened():
+    raise RuntimeError("Failed to open USB camera.")
+print(f"Camera Number {CameraNumber} initialized at {withCam}x{heightCam} @ {fps} FPS")
+
+#There is another camera testing code file that works with multiple cameras and should allow for pullig spicific cameras without worrying about issues such as randomness in which camera connects first
+# I originall planned to use that other process for the camera's but I never got notice of / the person who was supposed to be naming the cameras to remove issues with having two of the same cameras never ended up telling me if or when they did it
+# Therefore if you have time, using the other code file and rename the cameras so that you can set up the cameras and the code automatically so you can read the text or qr code or do any proccess from any of the cameras and start the cammeras fully by code
+
+try: #IDK What THis Means
+    while True: # loop
+
+        start_time = time.time()
+
+        ret, frame = cam.read()
+        if not ret:
+            continue
+
+        h_img, w_img, _ = frame.shape
+
+        cv2.imshow(f"Camera Number {CameraNumber}", frame) # The "f" before the string is what allows for the '{CameraNumber}' to display an interger rather than just text
+        # cv2.imshow("Motion Detection Mask", mask)
+
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            break
+
+        elapsed = time.time() - start_time
+        time.sleep(max(0, delay - elapsed))
+
+finally:
+    cam.release()
+    cv2.destroyAllWindows()

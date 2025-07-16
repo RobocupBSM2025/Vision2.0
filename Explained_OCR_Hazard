@@ -1,0 +1,117 @@
+import cv2 #Extremeely Helpful Camera thingy
+import numpy as np #Python Librayr 
+import keras_ocr #Text Reading software of the Keras Variety - OCR = Optical Chacter Recognition or Text reading through AI - This one is one of the best but Easy OCR is likley better if you have extra time to work on it I just did not want to brea everything by trying to use it last minute and I would have to find the best versions againwhich took 2 weeks to find theversions that did not conflict with eachother.
+import time
+
+# Settings
+w, h = 320, 240  # Resolution - Has to be low as Keras is a monster to frames and takes so much computer strength - May want to as Hector Did simulate each sign like 500 times to cover all posible coverage and create your own algorithm so it is less intentive and always gets it correct (This procces would likely take a whole semester as you have to crate a bounding box and text for eacha nd unless you have a light in the same spot asthe claw and simulate the light and camera together with there exact placement on the claw it would likely take even more as you would have to simulate different lighting. [ I am not sure about that that is justa hyposithisis])
+fps = 15 #Less frames = Less Intensive
+delay = 1 / fps
+margin_top, margin_bottom, margin_side = 100, 100, 100 #Extra space on the sides of the streamed video so text on the sides can be displayed still and allows for the lines connecting the text to make itso the text reading can be offf set and if you figure out how can make it so the text can be displayed off t the side with different collor text and lines so it is each displayed with there own collor so there is no overlap.
+font = cv2.FONT_HERSHEY_SIMPLEX
+font_scale = 0.6 #Text takes up less room
+line_thickness = 1 #Int so cannnot go lower
+hazard_color = (255, 165, 0)  # Orange 
+# (Broken system to origanally try to only display the correct text but does not currently work, it also has issues oif like this year[2025] at brazil one letter [the P in poison] is covvered partically or fully)
+neutral_color = (255, 0, 0)  # Blue 
+# If you coud create a list of maybe 20 different collors that each text can read and make it so the text does not overlap and you can see what text is connected to which bounding box
+#Above could create issues if certain text is only read for a frame at a time as the claw is moving or something and the collor raplidly changes causing issues if you are sensative to that, but with keras's slow proccesing that is not currenlt possible even if that were to happpen
+
+# Initialize OCR pipeline
+ocr_pipeline = keras_ocr.pipeline.Pipeline() # Creates a pipeline for keras (IDK what pipelinesare for, it was in all of the turorials I used)
+
+# Camera setup
+cam = cv2.VideoCapture(1) #Opens connected cammer (2nd one as the first one is the camera on the computer) and streames it
+cam.set(3, w) 
+cam.set(4, h)
+if not cam.isOpened(): #terminal display specs of camera and status
+    raise RuntimeError("Failed to open USB camera.")
+print(f"OCR Camera initialized at {w}x{h} @ {fps} FPS")
+
+try: #IDK
+    while True: #Loops 
+        start_time = time.time() #Frames to hopefully (and unseccesfully) make the keras system less intensive by making less frames be required to be proccesed
+
+        ret, frame = cam.read() #Frame is the video, IDK what ret is still (I wrote this afte rthe QR code explained)
+        if not ret:
+            continue
+
+        h_img, w_img, _ = frame.shape #Sets up the size of teh frame so you can aff to it
+        canvas = np.full((h_img + margin_top + margin_bottom, w_img + 2 * margin_side, 3), 255, dtype=np.uint8) #Adds to the size of the frame with the extra white space to siplay text and stuff
+        canvas[margin_top:margin_top + h_img, margin_side:margin_side + w_img] = frame #Changes the streamed video or the frame to include the changes of the addiditional background space
+
+        rgb_image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB) #Takes acollor video for keras as it requires collor (I think this is a reminant from when I was using Intel Realsense as I was having issues with low contrast [Really issues where the Text detected did not match the 'correct text' and therefore was not being siplayed and I though there was an issue with contrast o I likely used this to fizx it but I dont want to remove it in case it is nessary]. But allows for you to use a black and white image as collor to make the contast be more extreme if it is to close and btw [Black and Orage is appenetly not low contast same with red and white so Dont make the same issues as me.])
+        predictions = ocr_pipeline.recognize([rgb_image])[0] #Uses the OCR with the collor or 'Collor' image or frame to detect for text (Very coputer intensive)
+
+        for text, box in predictions: # The predictions is the data recived from the image
+            text_lower = text.lower() #Forces the text to be lowercase so you only need to check if the text is correct with lowercase text [It may already happen automatically with keras but this was just to ensure as I was in a rush]
+            box = np.array(box) #gets the data for the area of the boundign box or the area the text is taken from and what space the text is detected
+
+            if box.ndim != 2 or box.shape[1] != 2 or box.shape[0] != 4: #Makes sure the text is a certain shape, IDK what this is for it was just in the tutorials I used and may have been from when I had other issues and therefore may be removable
+                continue
+
+            # Detect hazards (Work In Progress)
+            hazard_detected = any([ #Does not work and now that I have seen the signs would have never worked as for example the 'P' in 'poison' was missing and I thought is would just be the the ummbers that might be missing,
+                "corrosive" in text_lower, #Would be nice to fifgure out a way to fix this as having the text not be displayed when incorrect ofr having it be able to fix certain common errors such as certain letters being missred or being able to fix if for example the p in poison is missing. 
+                all(word in text_lower for word in ["dangerous", "when", "wet"]), #The one problem with the above solution is whether like how I understand the Hector Groupt (Previous year's winners) o understand the rules to be of you display the correct text even if it is cut off or if it is displaying only the displayed text, it make cause issues 
+                all(word in text_lower for word in ["non-flammable", "gas"]),
+                "explosives" in text_lower,
+                all(word in text_lower for word in ["blasting", "agents"]),
+                all(word in text_lower for word in ["flammable", "gas"]),
+                all(word in text_lower for word in ["fuel", "oil"]),
+                all(word in text_lower for word in ["inhalation", "hazard"]),
+                "poison" in text_lower,
+                "oxygen" in text_lower,
+                "oxidizer" in text_lower,
+                all(word in text_lower for word in ["flammable", "solid"]),
+                all(word in text_lower for word in ["spontaneously", "combustible"]),
+                all(word in text_lower for word in ["organic", "peroxide"]),
+                "radioactive" in text_lower
+            ])
+
+            # Offset for canvas margins
+            box[:, 0] += margin_side
+            box[:, 1] += margin_top
+            box = box.astype(int)
+
+            # Color based on detection
+            color = hazard_color if hazard_detected else neutral_color #Allows for you to display different collors if it is the correct text, I accidentall origanlly had it so it only sidplayed the correct text and that caused the previsously described errors with the fact that I could not display any mutiple word sign or anything with 'low contrast'
+
+            # Draw box and label
+            cv2.polylines(canvas, [box], isClosed=True, color=color, thickness=2) #Creates the bounding box aroudn the text
+
+            top_right = box[1] #Identifes the location where the text comes out (Reminat of the Turorial that can be impoved apon)
+            label_pos = (top_right[0] + 5, top_right[1] - 5)
+            cv2.line(canvas, tuple(top_right), label_pos, (255, 0, 0), 1) # Creates a line from the text to the bounding box so it is easy to spot which is connected to which text and makes it so the text is always displayed above and tot the right of the sign
+            cv2.putText(canvas, text, label_pos, font, font_scale, color, line_thickness, cv2.LINE_AA) #settings of the text
+            print(text) #Prints the text connected to the line
+            #Is probably optimal to make it so there is a list or array of 20 or so different locations you can store text in the video and make it so that those each have a place in the canvas where they are displayed and connected to there respective bounding box so that there is no overlap in the text and make the collor differences are possible 
+            #Current Code Has issues with overlapping text that causes neither to be legiable and obove text states a possible future solution
+
+        # Add legend 
+        # (remnat if the tutorial and is likely unessary) Displays name of video and the window so that you can see what you arelooking at if thr=e lack of frames does not give it away
+        cv2.putText(canvas, "Hazard", (10, 25), font, 0.6, hazard_color, 2)
+        cv2.putText(canvas, "Other", (10, 50), font, 0.6, neutral_color, 2)
+
+        # Show window
+        cv2.imshow("OCR Hazard Detection", canvas) #Displays window with the above stuff on it
+
+        if cv2.waitKey(1) & 0xFF == ord('q'): #If you enter 'q' on the window it will quite
+            break
+
+        elapsed = time.time() - start_time #I think this is a failed attempt to make the proccess easier for the computer, but it may work
+        time.sleep(max(0, delay - elapsed))
+
+finally: #Quites everything
+    cam.release()
+    cv2.destroyAllWindows()
+
+#Below is the text that should be displayed when you run it in vs code with everything installed or at least it is how I currently see it before I get any results and this is the start up proccess
+    #PS C:\Users\Engineering\Desktop\Code_For_Camera>  c:; cd 'c:\Users\Engineering\Desktop\Code_For_Camera'; & 'c:\Users\Engineering\Desktop\Code_For_Camera\.venv\Scripts\python.exe' 'c:\Users\Engineering\.vscode\extensions\ms-python.debugpy-2025.10.0-win32-x64\bundled\libs\debugpy\launcher' '51541' '--' 'C:\Users\Engineering\Desktop\Code_For_Camera\.venv(Not_For_Compition_But_Documentation)\OCR_Hazard' 
+    #Looking for C:\Users\Engineering\.keras-ocr\craft_mlt_25k.h5
+    #2025-07-16 11:00:10.038478: I tensorflow/core/platform/cpu_feature_guard.cc:193] This TensorFlow binary is optimized with oneAPI Deep Neural Network Library (oneDNN) to use the following CPU instructions in performance-critical operations:  AVX AVX2
+    #To enable them in other operations, rebuild TensorFlow with the appropriate compiler flags.
+    #Looking for C:\Users\Engineering\.keras-ocr\crnn_kurapan.h5
+    #OCR Camera initialized at 320x240 @ 15 FPS
+    #1/1 [==============================] - 1s 1s/step
+    #1/1 [==============================] - 2s 2s/step

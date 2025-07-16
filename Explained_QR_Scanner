@@ -1,0 +1,81 @@
+import cv2 #MAIN Camera Software
+import numpy as np #Python Library
+import time #Allows for FPS
+
+# Settings
+w, h = 320, 240  # Resolution
+fps = 15 #Not exacly sure how this works it is just by recomendation of an online website
+delay = 1 / fps #Makes it so the frames are not insane and destroy the computer (Hopefullly - May not work)
+margin_top, margin_bottom, margin_side = 100, 100, 300 #Extra Room on the sides to allow for text to show even if the qr code is to large of text or on the edge of the camera screen
+qr_box_color = (0, 255, 0) # Green Collor
+font = cv2.FONT_HERSHEY_SIMPLEX # Font from CV2
+font_scale = 0.6 #Thin Text to allow for more compressed text
+line_thickness = 1 #Thin Line and bounding box Text to allow
+
+# Initialize QR detector
+qr_detector = cv2.QRCodeDetector() #Allows for qrcodes to be detected
+
+# Camera setup
+cam = cv2.VideoCapture(1) #Connects to a camera (Not the best as the camera who is connected can be random if you connnect all at once such as turning on th camera so it is better to connect dirrectly using the other code file I used.0)
+#The reason I used # 1 is because the computer's camera is #0 and therefore the camera next is the one I connected
+cam.set(3, w) #Sets With I think
+cam.set(4, h)# Sets the Hieght I thinks
+if not cam.isOpened(): #Tells you if the camera is connected so you can see if this is the error
+    raise RuntimeError("Failed to open USB camera.")
+print(f"QR Camera initialized at {w}x{h} @ {fps} FPS") #Tells you what the camera is doing in the terminal
+
+try: #IDK what this is
+    while True: #Allows for loops
+        start_time = time.time() #Allows for the fps
+
+        ret, frame = cam.read() #Frame is the video and I dont know what ret is but it seems very nessary
+        if not ret: #The code I took it from had this so I kept it
+            continue
+
+        h_img, w_img, _ = frame.shape # Copyed, but I think this is for allowing the margins or extra room be added to the sides of the frame 
+        canvas = np.full((h_img + margin_top + margin_bottom, w_img + 2 * margin_side, 3), 255, dtype=np.uint8) #Adding white extra room on the sides of the video
+        canvas[margin_top:margin_top + h_img, margin_side:margin_side + w_img] = frame
+
+        # QR detection
+        data, points, _ = qr_detector.detectAndDecode(frame) #Detects the area and data from the qr code
+
+        if points is not None and len(points) > 0: #IDK
+            points = points[0].astype(np.int32) #IDK
+            points[:, 0] += margin_side #Idk
+            points[:, 1] += margin_top#IDK
+
+            # Draw QR bounding box
+            cv2.polylines(canvas, [points], isClosed=True, color=qr_box_color, thickness=2) #Bounding box around the qr code to show you it is detecting the qr code and where it is being detected
+
+            # Center the label below QR
+            cx = int(np.mean(points[:, 0])) #Make it so it is more likelty to have the text be displayed and make it so the text goes on both sides of the qr code so not all of it is cut off if the qr code is on the right side of the screen or the bottom
+            cy = int(np.mean(points[:, 1]))
+            text_to_display = f"QR: {data}" if data else "QR: No data" #Displays this most of the time and just continue adjecting until you hit the correct angle and possition
+
+            # Print to terminal if QR code data is found
+            if data: #Prints the data of the text in the qr code if it find it as the data is often only shows for a frame as the angle is hard to hit so this makes it so you can see it evene if you personally miss it
+                print("QR Data:", data) #Prints the text in the terminal so it is not able to be missed
+
+            (text_width, text_height), _ = cv2.getTextSize(text_to_display, font, font_scale, line_thickness) #Applies the settings to the camera and text 
+            label_pos = (cx - text_width // 2, points[3][1] + 25) #Makes the tex go to the center i think
+
+            cv2.putText(canvas, text_to_display, label_pos, font, font_scale, qr_box_color, line_thickness, cv2.LINE_AA) #Applies settings
+
+            # Optional: Draw center point
+            cv2.circle(canvas, (cx, cy), 3, (0, 0, 255), -1) #Shows the center of the bounding box / qr code with a red dot to make it so you can see the center
+
+        cv2.imshow("QR Code Detection", canvas) #Dispays the QrCode layers and the bounding box, text, and the center point, and the extra backgound layer all while the video is being streamed to the computer on the computer
+
+        if cv2.waitKey(1) & 0xFF == ord('q'): #quits the while loop while in the camera 'tab' (Can also quit is vscode)
+            break
+
+        elapsed = time.time() - start_time #allows for ddelays
+        time.sleep(max(0, delay - elapsed))
+
+finally:
+    cam.release() #Breaks all instances and windows to make sure everythin is closed and there are no issues or duplicatte verions going on that could cause lag or other various issues
+    cv2.destroyAllWindows()
+
+#What I see on Visual Studio Code (Run and Debug - Python Debugger)
+    #PS C:\Users\Engineering\Desktop\Code_For_Camera>  c:; cd 'c:\Users\Engineering\Desktop\Code_For_Camera'; & 'c:\Users\Engineering\Desktop\Code_For_Camera\.venv\Scripts\python.exe' 'c:\Users\Engineering\.vscode\extensions\ms-python.debugpy-2025.10.0-win32-x64\bundled\libs\debugpy\launcher' '51571' '--' 'C:\Users\Engineering\Desktop\Code_For_Camera\.venv(Not_For_Compition_But_Documentation)\Explained_QR_Scanner' 
+    #QR Camera initialized at 320x240 @ 15 FPS

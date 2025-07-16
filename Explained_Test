@@ -1,0 +1,46 @@
+#File for me to Do Command C -> Command V into to be able to test changes for code without ruining the original file if the change is to big or messes everything up and I cannot undo for whatevery reason. USE IT FOR Such
+import cv2
+import numpy as np
+import time
+
+CameraNumber = 1
+
+# Settings
+withCam, heightCam = 640, 420  # Resolution
+fps = 15
+delay = 1 / fps
+
+# Camera setup
+cam = cv2.VideoCapture(CameraNumber)
+cam.set(3, withCam)
+cam.set(4, heightCam)
+if not cam.isOpened():
+    raise RuntimeError("Failed to open USB camera.")
+print(f"Camera Number {CameraNumber} initialized at {withCam}x{heightCam} @ {fps} FPS")
+
+#ObjectDetector from Stable Camera (which it is not)
+ObjectDetector = cv2.createBackgroundSubtractorMOG2()
+
+try:
+    while True:
+
+        start_time = time.time()
+
+        ret, frame = cam.read()
+        if not ret:
+            continue
+
+        h_img, w_img, _ = frame.shape
+
+        cv2.imshow(f"Camera Number {CameraNumber}", frame)
+        # cv2.imshow("Motion Detection Mask", mask)
+
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            break
+
+        elapsed = time.time() - start_time
+        time.sleep(max(0, delay - elapsed))
+
+finally:
+    cam.release()
+    cv2.destroyAllWindows()
