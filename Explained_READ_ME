@@ -1,0 +1,99 @@
+Steps to Setup / Run / Code the Files :
+
+    1. Download Visual Studio Code
+
+    2. Add Python as an extention in and on Visual Studio Code
+
+    3. Download the Recomended file (Python 3.10) from this website (If you are using windows) - https://www.python.org/downloads/release/python-3100/
+    
+    4. Run the exe file to download it
+
+    5. In a Visual Studio Code file - At the top left of the window (next to the "file", "edit", and "selection" drop down menues) click the "view" drop down menue
+
+    6. In the view drop down menue select the "Command Palette" and search for and select "python: select interpreter" and change the python version to python 3.10
+
+    7. Select "Command Palette" again and seach for and select "python: create envirnment" and select ".venv" for python 3.10
+
+    8. Close and reopen the powershell in Visual Studio Code and run the following commands in order :
+        8a. pip install numpy == 1.24.4
+        8b. pip install tensorflow == 2.11.0
+        8c. pip install keras-ocr == 0.8.8
+        8d. pip install opencv-python
+
+    9. Due to issues with compatibility you may have to run these two commands in the powershell as well (This is due to the fact that, at least for me, installing tensorflow instals a version of numpy that is in the 2.xx.x which is not compatible with keras-ocr) :
+        9a. pip install numpy == 1.24.4
+        9b. pip install -- no-deps tensorflow == 2.11.0
+
+    10. Go to the explorer tab or welcome tab is Visual Studio Code and create new python files for each of the files
+
+    11. Go to this Github link - https://github.com/RobocupBSM2025/Vision2.0
+
+    12. Copy the code from the respective files and paste it into visual studio code
+
+    Additonal Info :
+
+        To run things in Visual Studio Code in python you will need to instal the "Python Debugger"
+
+        In addition I have something call "Pylance" installed and while I do not know if it is nessary, it might be so it could be helpful to insall it.
+
+
+Files Explained Below :
+
+    Camera_Test_Numbers = Tests which camera is associated with which number in the cv2.VideoCapture(#) command so that you can check to see which camera is the one you want to connect to for the other files. It is currectly manual.
+
+    Motion_Detection = Displays a bounding box around an area where motion is detected using the camera
+
+    OCR_Hazard = Reads text and displays the read text, has issues with missreading text, text overlap/clutter, and other issues. Additionaly it displays a bounding box around the text it scanns. It is very intensive and therefore runs at around 1 frame per second.
+
+    Test = File for me to Do Command C -> Command V into to be able to test changes for code without ruining the original file if the change is to big or messes everything up and I cannot undo for whatevery reason.
+
+    QR_Scanner = Uses the camera to scan for and display the text connected to a qr code. It is very finacy and therefore you may need to move the camera around to get the best angle and get the text from the terminal rather than from the display.
+
+    AutoCam = Original Camera setting file and one that solves the reason for Camera Test Number as long as you can name the cameras each with a unique name. It allows you to connect to multiple cameras at once (currently only 2, as I never was asked to do more) but is possible to make it connect to more.
+
+Imports Explained Below :
+
+    cv2 = Allows for all things camera
+
+    time = Allows for trackking time and creating delays
+
+    numpy = Allows for python arrays and saving data
+
+    keras_ocr = Text reading algorith library that detects, displays, and reads text from a video, image, or streamed video.
+
+    threading = Allows for running multiple processes at once such as two cameras in one file.
+
+Tips and Tricks From Sebastian :
+
+    When you can't rename cameras, make sure that there is no two of one kind of camera connected to one usb, so you can use both a fish eye camera and a normal camera in one usb but not two fish eye or two normal.
+
+    Use tons of tutorials and just to trial and error until it works, cause at somepoint you will find the one error or issue and everything will be better. 
+
+    If you need help, I will be in college but I am alawys availble to help, try either rosowb@gmail.com for email or try texting or calling 612-272-5170 and I should respond in due time as long as you state that you are doing this for robocup so I know who you are.
+
+    If you need help from a teacher check in at the start of each class to remind them and check in. It may not work but at least you can say you tried. I tried and it worked around 50% if the time.
+
+Things that can be fixed or improved apon :
+
+    Making or completing the fully automated cammera setup using the AutoCam python file
+
+    Naming Each Camera something unique somehow (The Teachers Should help and you should not do this on your own)
+
+    Either lessen the OCR loadby using maybe Easy OCR or making Keras OCR less intensive
+
+    Maybe also make a personal algorithm (Would not reccomend but would make the algorithm much less intensive and be equal to last years top team) - NOT RECOMENDED
+
+    Make the QR Code scannner more reliable as it is currectly not very 
+
+    Make the motion detector one for a non stationary camera and make it so the bounding boxes can work on an (xy, xy) or an angle rather than (X, Y) or so that the bounding boxes dont leave so much emptpy space but rather surround the moving object.
+
+    Automate Camera Test Numbers if AutoCam does not work so it automatically checks the camera you input (if you enter the key '3' it would open the cv2.VideoCapture(3))
+
+    Make the Keras OCR work with making sure that the correct text is displayed by maybe making it so if the correct text is dispayed it will autocorrect to it (Ify if it would work, but it is an idea)
+
+
+
+
+
+
+
