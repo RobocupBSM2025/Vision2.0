@@ -49,7 +49,12 @@ try: #IDk
                 x, y, w, h = cv2.boundingRect(cnt) #Creates a bounding box around the moving object that takes the furthest x and y for the countours on one object so it displays on the x and y axis only 
                 #If I have time I will look for the tutorial I found to make it so you can have bounding boxes that can be at an angle and not just x and y axes's
 
-                cv2.rectangle(frame, (x,y), (x + w, y + h), (0, 255, 0), 2) # Create and displays the bounding box on the x and y axis only for teh collor Green (I think) abd with a line thinkness of 2
+                rect = cv2.minAreaRect(cnt) # Tutorial for semi working (WIP) rotated bounding boxes - https://docs.opencv.org/4.x/dd/d49/tutorial_py_contour_features.html
+                #Makes it take the minimun area
+                box = cv2.boxPoints(rect) # IDK
+                box = np.intp(box) #IDK
+                cv2.drawContours(frame, [box], 0, (0, 255, 0), 2) #New Code that allows for the bounding boxes to at an angle (The old code and comments are below)
+                #v2.rectangle(frame, (x,y), (x + w, y + h), (0, 255, 0), 2) # Create and displays the bounding box on the x and y axis only for teh collor Green (I think) abd with a line thinkness of 2
 
         cv2.imshow("Motion Detection", frame) #Creates a window with the alterations and the streamed video
 
